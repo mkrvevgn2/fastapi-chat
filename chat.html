@@ -20,10 +20,22 @@
   <ul id="messages"></ul>
 
   <script>
-    //const ws = new WebSocket("wss://f17f-34-75-170-118.ngrok-free.app/ws/chat");
-    //const ws = new WebSocket("wss://9737-34-105-12-207.ngrok-free.app/ws/chat");
-    const ws = new WebSocket("wss://23f0-35-233-147-240.ngrok-free.app/ws/chat");
-    
+    const ws = new WebSocket("wss://43cc-35-233-147-240.ngrok-free.app/ws/chat");
+
+    let latitude = null;
+    let longitude = null;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+      },
+      (err) => {
+        console.warn("Геолокация не получена:", err.message);
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+
     ws.onmessage = (event) => {
       const msg = document.createElement("li");
       msg.textContent = event.data;
@@ -33,9 +45,18 @@
     function send() {
       const username = document.getElementById("username").value || "Аноним";
       const message = document.getElementById("msg").value;
-      ws.send(`${username}: ${message}`);
+
+      const payload = {
+        username,
+        message,
+        latitude,
+        longitude
+      };
+
+      ws.send(JSON.stringify(payload));
       document.getElementById("msg").value = "";
     }
   </script>
 </body>
 </html>
+
