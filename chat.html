@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Chat</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    #messages { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
+    li { margin-bottom: 5px; background: #fff; padding: 8px; border-radius: 5px; }
+    input { padding: 6px; margin-right: 5px; }
+    button { padding: 6px 10px; }
+  </style>
+</head>
+<body>
+  <h2>💬 FastAPI WebSocket Chat</h2>
+  <input id="username" placeholder="Ваше имя" />
+  <input id="msg" placeholder="Сообщение" />
+  <button onclick="send()">Отправить</button>
+
+  <ul id="messages"></ul>
+
+  <script>
+    //const ws = new WebSocket("wss://f17f-34-75-170-118.ngrok-free.app/ws/chat");
+    //const ws = new WebSocket("wss://9737-34-105-12-207.ngrok-free.app/ws/chat");
+    const ws = new WebSocket("wss://6748-34-105-12-207.ngrok-free.app/ws/chat");
+    
+    ws.onmessage = (event) => {
+      const msg = document.createElement("li");
+      msg.textContent = event.data;
+      document.getElementById("messages").appendChild(msg);
+    };
+
+    function send() {
+      const username = document.getElementById("username").value || "Аноним";
+      const message = document.getElementById("msg").value;
+      ws.send(`${username}: ${message}`);
+      document.getElementById("msg").value = "";
+    }
+  </script>
+</body>
+</html>
