@@ -6,13 +6,17 @@
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
     #messages { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
-    li { margin-bottom: 5px; background: #fff; padding: 8px; border-radius: 5px; }
+    li { margin-bottom: 5px; background: #fff; padding: 8px; border-radius: 5px; display: flex; align-items: center; gap: 10px; }
     input { padding: 6px; margin-right: 5px; }
     button { padding: 6px 10px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    #avatarPreview { width: 40px; height: 40px; border-radius: 50%; margin-bottom: 10px; }
   </style>
 </head>
 <body>
   <h2>💬 FastAPI WebSocket Chat</h2>
+
+  <img id="avatarPreview" src="" alt="avatar" />
   <input id="username" placeholder="Ваше имя" />
   <input id="msg" placeholder="Сообщение" />
   <button onclick="send()">Отправить</button>
@@ -23,6 +27,11 @@
     const ws = new WebSocket("wss://edde-35-233-147-240.ngrok-free.app/ws/chat");
     let latitude = null;
     let longitude = null;
+
+    // ✅ Генерация случайного аватарки
+    const avatarSeed = Math.random().toString(36).substring(2, 10); // типа "g2x1n7k9"
+    const avatarURL = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${avatarSeed}`;
+    document.getElementById("avatarPreview").src = avatarURL;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -38,8 +47,18 @@
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const distInfo = data.distance_km !== null ? ` (~${data.distance_km.toFixed(1)} км от вас)` : '';
+      
       const msg = document.createElement("li");
-      msg.textContent = `[${data.timestamp}] ${data.username}: ${data.message}${distInfo}`;
+
+      const avatar = document.createElement("img");
+      avatar.src = data.avatar || "";
+      avatar.className = "avatar";
+
+      const text = document.createElement("span");
+      text.textContent = `[${data.timestamp}] ${data.username}: ${data.message}${distInfo}`;
+
+      msg.appendChild(avatar);
+      msg.appendChild(text);
       document.getElementById("messages").appendChild(msg);
     };
 
@@ -51,7 +70,8 @@
         username,
         message,
         latitude,
-        longitude
+        longitude,
+        avatar: avatarURL  // 👈 добавляем аватар в сообщение
       };
 
       ws.send(JSON.stringify(payload));
