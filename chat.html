@@ -31,10 +31,12 @@
     let longitude = null;
     let reconnectInterval = 3000;
 
+    // Генерация и отображение аватара
     const avatarSeed = Math.random().toString(36).substring(2, 10);
     const avatarURL = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${avatarSeed}`;
     document.getElementById("avatarPreview").src = avatarURL;
 
+    // Геолокация
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         latitude = pos.coords.latitude;
@@ -46,12 +48,17 @@
       { enableHighAccuracy: true, timeout: 5000 }
     );
 
+    // Восстановление имени из localStorage
+    const usernameInput = document.getElementById("username");
+    usernameInput.value = localStorage.getItem("username") || "";
+
+    // Сохраняем имя в localStorage при вводе
+    usernameInput.addEventListener("input", () => {
+      localStorage.setItem("username", usernameInput.value);
+    });
+
     function connectWebSocket() {
       ws = new WebSocket("wss://e46f-34-169-47-57.ngrok-free.app/ws/chat");
-      //https://0793-34-169-47-57.ngrok-free.app
-      //https://12d4-35-237-91-117.ngrok-free.app
-      //https://a6c8-34-53-112-5.ngrok-free.app
-      //https://e46f-34-169-47-57.ngrok-free.app
 
       ws.onopen = () => {
         document.getElementById("status").textContent = "🟢 Подключено";
@@ -60,7 +67,6 @@
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
-        // Обновляем количество пользователей, если есть поле user_count
         if (data.user_count !== undefined) {
           document.getElementById("userCount").textContent = `(${data.user_count} пользователь${data.user_count === 1 ? '' : 'ей'})`;
           return;
@@ -118,5 +124,3 @@
   </script>
 </body>
 </html>
-
-
