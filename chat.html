@@ -31,12 +31,27 @@
     let longitude = null;
     let reconnectInterval = 3000;
 
-    // Генерация и отображение аватара
-    const avatarSeed = Math.random().toString(36).substring(2, 10);
-    const avatarURL = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${avatarSeed}`;
-    document.getElementById("avatarPreview").src = avatarURL;
+    const usernameInput = document.getElementById("username");
+    const avatarPreview = document.getElementById("avatarPreview");
 
-    // Геолокация
+    // --- ВОССТАНОВЛЕНИЕ ИЛИ ГЕНЕРАЦИЯ ИМЕНИ И АВАТАРА ---
+    
+    // Имя пользователя
+    usernameInput.value = localStorage.getItem("username") || "";
+    usernameInput.addEventListener("input", () => {
+      localStorage.setItem("username", usernameInput.value);
+    });
+
+    // Аватар
+    let avatarURL = localStorage.getItem("avatarURL");
+    if (!avatarURL) {
+      const avatarSeed = Math.random().toString(36).substring(2, 10);
+      avatarURL = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${avatarSeed}`;
+      localStorage.setItem("avatarURL", avatarURL);
+    }
+    avatarPreview.src = avatarURL;
+
+    // --- ГЕОЛОКАЦИЯ ---
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         latitude = pos.coords.latitude;
@@ -48,15 +63,7 @@
       { enableHighAccuracy: true, timeout: 5000 }
     );
 
-    // Восстановление имени из localStorage
-    const usernameInput = document.getElementById("username");
-    usernameInput.value = localStorage.getItem("username") || "";
-
-    // Сохраняем имя в localStorage при вводе
-    usernameInput.addEventListener("input", () => {
-      localStorage.setItem("username", usernameInput.value);
-    });
-
+    // --- ПОДКЛЮЧЕНИЕ ---
     function connectWebSocket() {
       ws = new WebSocket("wss://e46f-34-169-47-57.ngrok-free.app/ws/chat");
 
@@ -100,8 +107,9 @@
 
     connectWebSocket();
 
+    // --- ОТПРАВКА СООБЩЕНИЯ ---
     function send() {
-      const username = document.getElementById("username").value || "Аноним";
+      const username = usernameInput.value || "Аноним";
       const message = document.getElementById("msg").value;
 
       if (!message.trim()) return;
