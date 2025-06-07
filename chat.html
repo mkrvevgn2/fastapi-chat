@@ -35,14 +35,11 @@
     const avatarPreview = document.getElementById("avatarPreview");
 
     // --- ВОССТАНОВЛЕНИЕ ИЛИ ГЕНЕРАЦИЯ ИМЕНИ И АВАТАРА ---
-    
-    // Имя пользователя
     usernameInput.value = localStorage.getItem("username") || "";
     usernameInput.addEventListener("input", () => {
       localStorage.setItem("username", usernameInput.value);
     });
 
-    // Аватар
     let avatarURL = localStorage.getItem("avatarURL");
     if (!avatarURL) {
       const avatarSeed = Math.random().toString(36).substring(2, 10);
@@ -92,7 +89,11 @@
 
         msg.appendChild(avatar);
         msg.appendChild(text);
-        document.getElementById("messages").appendChild(msg);
+        const messagesContainer = document.getElementById("messages");
+        messagesContainer.appendChild(msg);
+
+        // ⬇️ Прокрутка к последнему сообщению
+        msg.scrollIntoView({ behavior: "smooth" });
       };
 
       ws.onclose = () => {
@@ -132,3 +133,4 @@
   </script>
 </body>
 </html>
+
