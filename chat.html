@@ -47,10 +47,11 @@
     );
 
     function connectWebSocket() {
-      ws = new WebSocket("wss://0793-34-169-47-57.ngrok-free.app/ws/chat");
+      ws = new WebSocket("wss://e46f-34-169-47-57.ngrok-free.app/ws/chat");
       //https://0793-34-169-47-57.ngrok-free.app
       //https://12d4-35-237-91-117.ngrok-free.app
       //https://a6c8-34-53-112-5.ngrok-free.app
+      //https://e46f-34-169-47-57.ngrok-free.app
 
       ws.onopen = () => {
         document.getElementById("status").textContent = "🟢 Подключено";
