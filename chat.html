@@ -11,11 +11,13 @@
     button { padding: 6px 10px; }
     .avatar { width: 32px; height: 32px; border-radius: 50%; }
     #avatarPreview { width: 40px; height: 40px; border-radius: 50%; margin-bottom: 10px; }
+    #status { color: gray; font-size: 0.9em; margin-bottom: 10px; }
   </style>
 </head>
 <body>
-  <h2>💬 FastAPI WebSocket Chat</h2>
+  <h2>💬 FastAPI WebSocket Chat <span id="userCount">(0 пользователей)</span></h2>
 
+  <div id="status">🔄 Подключение...</div>
   <img id="avatarPreview" src="" alt="avatar" />
   <input id="username" placeholder="Ваше имя" />
   <input id="msg" placeholder="Сообщение" />
@@ -24,13 +26,12 @@
   <ul id="messages"></ul>
 
   <script>
-    const ws = new WebSocket("wss://7a5c-104-155-209-11.ngrok-free.app/ws/chat");
-    //https://7a5c-104-155-209-11.ngrok-free.app
+    let ws;
     let latitude = null;
     let longitude = null;
+    let reconnectInterval = 3000;
 
-    // ✅ Генерация случайного аватарки
-    const avatarSeed = Math.random().toString(36).substring(2, 10); // типа "g2x1n7k9"
+    const avatarSeed = Math.random().toString(36).substring(2, 10);
     const avatarURL = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${avatarSeed}`;
     document.getElementById("avatarPreview").src = avatarURL;
 
@@ -45,40 +46,73 @@
       { enableHighAccuracy: true, timeout: 5000 }
     );
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const distInfo = data.distance_km !== null ? ` (~${data.distance_km.toFixed(1)} км от вас)` : '';
-      
-      const msg = document.createElement("li");
+    function connectWebSocket() {
+      ws = new WebSocket("wss://7a5c-104-155-209-11.ngrok-free.app/ws/chat");
 
-      const avatar = document.createElement("img");
-      avatar.src = data.avatar || "";
-      avatar.className = "avatar";
+      ws.onopen = () => {
+        document.getElementById("status").textContent = "🟢 Подключено";
+      };
 
-      const text = document.createElement("span");
-      text.textContent = `[${data.timestamp}] ${data.username}: ${data.message}${distInfo}`;
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-      msg.appendChild(avatar);
-      msg.appendChild(text);
-      document.getElementById("messages").appendChild(msg);
-    };
+        // Обновляем количество пользователей, если есть поле user_count
+        if (data.user_count !== undefined) {
+          document.getElementById("userCount").textContent = `(${data.user_count} пользователь${data.user_count === 1 ? '' : 'ей'})`;
+          return;
+        }
+
+        const distInfo = data.distance_km !== null ? ` (~${data.distance_km.toFixed(1)} км от вас)` : '';
+
+        const msg = document.createElement("li");
+
+        const avatar = document.createElement("img");
+        avatar.src = data.avatar || "";
+        avatar.className = "avatar";
+
+        const text = document.createElement("span");
+        text.textContent = `[${data.timestamp}] ${data.username}: ${data.message}${distInfo}`;
+
+        msg.appendChild(avatar);
+        msg.appendChild(text);
+        document.getElementById("messages").appendChild(msg);
+      };
+
+      ws.onclose = () => {
+        document.getElementById("status").textContent = "🔴 Соединение потеряно. Повторная попытка...";
+        setTimeout(connectWebSocket, reconnectInterval);
+      };
+
+      ws.onerror = () => {
+        document.getElementById("status").textContent = "⚠️ Ошибка соединения.";
+      };
+    }
+
+    connectWebSocket();
 
     function send() {
       const username = document.getElementById("username").value || "Аноним";
       const message = document.getElementById("msg").value;
+
+      if (!message.trim()) return;
 
       const payload = {
         username,
         message,
         latitude,
         longitude,
-        avatar: avatarURL  // 👈 добавляем аватар в сообщение
+        avatar: avatarURL
       };
 
-      ws.send(JSON.stringify(payload));
-      document.getElementById("msg").value = "";
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(payload));
+        document.getElementById("msg").value = "";
+      } else {
+        alert("Нет соединения с сервером.");
+      }
     }
   </script>
 </body>
 </html>
+
 
