@@ -7,7 +7,7 @@
     body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
     #messages { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
     li { margin-bottom: 5px; background: #fff; padding: 8px; border-radius: 5px; display: flex; align-items: center; gap: 10px; }
-    input[type="text"] { padding: 6px; margin-right: 5px; }
+    input[type="text"], input[type="file"] { padding: 6px; margin-right: 5px; }
     button { padding: 6px 10px; }
     .avatar { width: 32px; height: 32px; border-radius: 50%; }
     #avatarPreview { width: 40px; height: 40px; border-radius: 50%; margin-bottom: 10px; }
@@ -26,7 +26,7 @@
     📎
     <input type="file" id="fileInput" multiple style="display: none;" />
   </label>
-  <button onclick="send()">Отправить</button>
+  <button onclick="send()" id="sendBtn">Отправить</button>
 
   <div id="fileList"></div>
   <ul id="messages"></ul>
@@ -42,8 +42,12 @@
     const statusDiv = document.getElementById("status");
     const fileInput = document.getElementById("fileInput");
     const fileListDiv = document.getElementById("fileList");
+    const sendBtn = document.getElementById("sendBtn");
 
     let selectedFiles = [];
+
+    // Укажите здесь базовый URL сервера (тот же, что и в ngrok или ваш)
+    const SERVER_BASE_URL = "https://4796-35-221-178-181.ngrok-free.app";
 
     // Session & avatar
     let sessionId = localStorage.getItem("sessionId");
@@ -79,10 +83,10 @@
 
     // Подключение WebSocket
     function connectWebSocket() {
-      ws = new WebSocket("wss://4796-35-221-178-181.ngrok-free.app/ws/chat"); // 👈 Замени на актуальный адрес
-//https://4796-35-221-178-181.ngrok-free.app
+      ws = new WebSocket(SERVER_BASE_URL.replace(/^http/, 'ws') + "/ws/chat");
       ws.onopen = () => {
         statusDiv.textContent = "🟢 Подключено";
+        sendBtn.disabled = false;
         ws.send(JSON.stringify({
           sessionId,
           username: usernameInput.value || "Аноним",
@@ -118,11 +122,13 @@
 
       ws.onclose = () => {
         statusDiv.textContent = "🔴 Соединение потеряно. Повторная попытка...";
+        sendBtn.disabled = true;
         setTimeout(connectWebSocket, 3000);
       };
 
       ws.onerror = () => {
         statusDiv.textContent = "⚠️ Ошибка соединения.";
+        sendBtn.disabled = true;
       };
     }
 
@@ -148,8 +154,8 @@
     // Отправка сообщения и файлов
     async function send() {
       const username = usernameInput.value || "Аноним";
-      const message = document.getElementById("msg").value;
-      if (!message.trim() && selectedFiles.length === 0) return;
+      const message = document.getElementById("msg").value.trim();
+      if (!message && selectedFiles.length === 0) return;
 
       const payload = {
         sessionId,
@@ -160,29 +166,34 @@
         avatar: avatarURL
       };
 
-      // Отправка сообщения по WebSocket
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(payload));
-      } else {
+      if (ws.readyState !== WebSocket.OPEN) {
         alert("Нет соединения с сервером.");
         return;
       }
 
-      // Отправка файлов на /upload
+      // Отправляем сообщение по WebSocket
+      ws.send(JSON.stringify(payload));
+
+      // Отправляем файлы, если есть
       if (selectedFiles.length > 0) {
         const formData = new FormData();
-        selectedFiles.forEach((file, i) => {
-          formData.append("files", file); // multiple "files"
+        selectedFiles.forEach((file) => {
+          formData.append("files", file);
         });
-        formData.append("username", username); // кому принадлежит
+        formData.append("username", username);
 
         try {
-          await fetch("/upload", {
+          const response = await fetch(SERVER_BASE_URL + "/upload", {
             method: "POST",
             body: formData
           });
+          if (!response.ok) {
+            console.error("Ошибка загрузки файлов:", response.statusText);
+            alert("Ошибка загрузки файлов: " + response.statusText);
+          }
         } catch (err) {
           console.error("Ошибка загрузки файлов:", err);
+          alert("Ошибка загрузки файлов. Проверьте соединение.");
         }
       }
 
@@ -195,6 +206,3 @@
   </script>
 </body>
 </html>
-
-
-
