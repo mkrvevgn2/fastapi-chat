@@ -34,7 +34,12 @@
     const usernameInput = document.getElementById("username");
     const avatarPreview = document.getElementById("avatarPreview");
 
-    // --- ВОССТАНОВЛЕНИЕ ИЛИ ГЕНЕРАЦИЯ ИМЕНИ И АВАТАРА ---
+    let sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem("sessionId", sessionId);
+    }
+
     usernameInput.value = localStorage.getItem("username") || "";
     usernameInput.addEventListener("input", () => {
       localStorage.setItem("username", usernameInput.value);
@@ -48,7 +53,6 @@
     }
     avatarPreview.src = avatarURL;
 
-    // --- ГЕОЛОКАЦИЯ ---
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         latitude = pos.coords.latitude;
@@ -60,12 +64,17 @@
       { enableHighAccuracy: true, timeout: 5000 }
     );
 
-    // --- ПОДКЛЮЧЕНИЕ ---
     function connectWebSocket() {
-      ws = new WebSocket("wss://e46f-34-169-47-57.ngrok-free.app/ws/chat");
+      ws = new WebSocket("wss://9126-34-10-245-56/ws/chat");
 
       ws.onopen = () => {
         document.getElementById("status").textContent = "🟢 Подключено";
+        ws.send(JSON.stringify({
+          sessionId,
+          username: usernameInput.value || "Аноним",
+          latitude,
+          longitude
+        }));
       };
 
       ws.onmessage = (event) => {
@@ -89,10 +98,7 @@
 
         msg.appendChild(avatar);
         msg.appendChild(text);
-        const messagesContainer = document.getElementById("messages");
-        messagesContainer.appendChild(msg);
-
-        // ⬇️ Прокрутка к последнему сообщению
+        document.getElementById("messages").appendChild(msg);
         msg.scrollIntoView({ behavior: "smooth" });
       };
 
@@ -108,14 +114,13 @@
 
     connectWebSocket();
 
-    // --- ОТПРАВКА СООБЩЕНИЯ ---
     function send() {
       const username = usernameInput.value || "Аноним";
       const message = document.getElementById("msg").value;
-
       if (!message.trim()) return;
 
       const payload = {
+        sessionId,
         username,
         message,
         latitude,
@@ -133,4 +138,5 @@
   </script>
 </body>
 </html>
+
 
