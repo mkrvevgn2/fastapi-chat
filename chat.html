@@ -79,8 +79,8 @@
 
     // Подключение WebSocket
     function connectWebSocket() {
-      ws = new WebSocket("wss://YOUR-NGROK-URL-HERE.ngrok-free.app/ws/chat"); // 👈 Замени на актуальный адрес
-
+      ws = new WebSocket("wss://4796-35-221-178-181.ngrok-free.app/ws/chat"); // 👈 Замени на актуальный адрес
+//https://4796-35-221-178-181.ngrok-free.app
       ws.onopen = () => {
         statusDiv.textContent = "🟢 Подключено";
         ws.send(JSON.stringify({
