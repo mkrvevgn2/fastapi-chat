@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>WebSocket Chat</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
@@ -29,10 +29,11 @@
     let ws;
     let latitude = null;
     let longitude = null;
-    let reconnectInterval = 3000;
-
     const usernameInput = document.getElementById("username");
     const avatarPreview = document.getElementById("avatarPreview");
+    const messages = document.getElementById("messages");
+    const userCountSpan = document.getElementById("userCount");
+    const statusDiv = document.getElementById("status");
 
     let sessionId = localStorage.getItem("sessionId");
     if (!sessionId) {
@@ -65,12 +66,10 @@
     );
 
     function connectWebSocket() {
-      ws = new WebSocket("wss://020a-34-10-245-56.ngrok-free.app/ws/chat");
-      //https://020a-34-10-245-56
-      //https://8821-34-10-245-56.ngrok-free.app
+      ws = new WebSocket("wss://028b-34-10-245-56.ngrok-free.app/ws/chat");
 
       ws.onopen = () => {
-        document.getElementById("status").textContent = "🟢 Подключено";
+        statusDiv.textContent = "🟢 Подключено";
         ws.send(JSON.stringify({
           sessionId,
           username: usernameInput.value || "Аноним",
@@ -83,10 +82,11 @@
         const data = JSON.parse(event.data);
 
         if (data.user_count !== undefined) {
-          document.getElementById("userCount").textContent = `(${data.user_count} пользователь${data.user_count === 1 ? '' : 'ей'})`;
+          userCountSpan.textContent = `(${data.user_count} пользователь${data.user_count === 1 ? '' : 'ей'})`;
           return;
         }
 
+        // Для самого пользователя distance_km всегда None, поэтому не отображаем
         const distInfo = data.distance_km !== null ? ` (~${data.distance_km.toFixed(1)} км от вас)` : '';
 
         const msg = document.createElement("li");
@@ -100,17 +100,17 @@
 
         msg.appendChild(avatar);
         msg.appendChild(text);
-        document.getElementById("messages").appendChild(msg);
+        messages.appendChild(msg);
         msg.scrollIntoView({ behavior: "smooth" });
       };
 
       ws.onclose = () => {
-        document.getElementById("status").textContent = "🔴 Соединение потеряно. Повторная попытка...";
-        setTimeout(connectWebSocket, reconnectInterval);
+        statusDiv.textContent = "🔴 Соединение потеряно. Повторная попытка...";
+        setTimeout(connectWebSocket, 3000);
       };
 
       ws.onerror = () => {
-        document.getElementById("status").textContent = "⚠️ Ошибка соединения.";
+        statusDiv.textContent = "⚠️ Ошибка соединения.";
       };
     }
 
