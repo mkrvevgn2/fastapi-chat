@@ -46,10 +46,10 @@
 
     let selectedFiles = [];
 
-    // Укажите здесь базовый URL сервера (тот же, что и в ngrok или ваш)
-    const SERVER_BASE_URL = "https://d572-35-196-214-202.ngrok-free.app";
+    // 🧩 Укажи актуальный URL ngrok (из вывода сервера)
+    const SERVER_BASE_URL = "https://1a2f-35-196-214-202.ngrok-free.app";
 
-    // Session & avatar
+    // 📦 Session ID и аватар
     let sessionId = localStorage.getItem("sessionId");
     if (!sessionId) {
       sessionId = crypto.randomUUID();
@@ -69,7 +69,7 @@
     }
     avatarPreview.src = avatarURL;
 
-    // Геолокация
+    // 📍 Геолокация
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         latitude = pos.coords.latitude;
@@ -81,9 +81,10 @@
       { enableHighAccuracy: true, timeout: 5000 }
     );
 
-    // Подключение WebSocket
+    // 🔌 Подключение WebSocket
     function connectWebSocket() {
       ws = new WebSocket(SERVER_BASE_URL.replace(/^http/, 'ws') + "/ws/chat");
+
       ws.onopen = () => {
         statusDiv.textContent = "🟢 Подключено";
         sendBtn.disabled = false;
@@ -91,7 +92,8 @@
           sessionId,
           username: usernameInput.value || "Аноним",
           latitude,
-          longitude
+          longitude,
+          avatar: avatarURL
         }));
       };
 
@@ -103,8 +105,7 @@
           return;
         }
 
-        const distInfo = data.distance_km !== null ? ` (~${data.distance_km.toFixed(1)} км от вас)` : '';
-
+        const distInfo = data.distance_km !== null ? ` (~${data.distance_km} км от вас)` : '';
         const msg = document.createElement("li");
 
         const avatar = document.createElement("img");
@@ -134,13 +135,12 @@
 
     connectWebSocket();
 
-    // Обработчик выбора файлов
+    // 📎 Обработка файлов
     fileInput.addEventListener("change", (event) => {
       selectedFiles = Array.from(event.target.files);
       renderFileList();
     });
 
-    // Отображение списка файлов
     function renderFileList() {
       if (selectedFiles.length === 0) {
         fileListDiv.innerHTML = "";
@@ -151,7 +151,7 @@
       fileListDiv.innerHTML = `<b>📎 Прикреплённые файлы:</b><ul>${items.join("")}</ul>`;
     }
 
-    // Отправка сообщения и файлов
+    // 🚀 Отправка сообщений и файлов
     async function send() {
       const username = usernameInput.value || "Аноним";
       const message = document.getElementById("msg").value.trim();
@@ -171,10 +171,8 @@
         return;
       }
 
-      // Отправляем сообщение по WebSocket
       ws.send(JSON.stringify(payload));
 
-      // Отправляем файлы, если есть
       if (selectedFiles.length > 0) {
         const formData = new FormData();
         selectedFiles.forEach((file) => {
@@ -197,7 +195,6 @@
         }
       }
 
-      // Очистка
       document.getElementById("msg").value = "";
       fileInput.value = "";
       selectedFiles = [];
