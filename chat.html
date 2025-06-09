@@ -46,8 +46,10 @@
 
     let selectedFiles = [];
 
-    const SERVER_BASE_URL = "https://5954-34-125-93-238.ngrok-free.app";
+    // Укажите здесь базовый URL сервера (тот же, что и в ngrok или ваш)
+    const SERVER_BASE_URL = "https://6d88-34-80-176-61.ngrok-free.app";
 
+    // Session & avatar
     let sessionId = localStorage.getItem("sessionId");
     if (!sessionId) {
       sessionId = crypto.randomUUID();
@@ -67,6 +69,7 @@
     }
     avatarPreview.src = avatarURL;
 
+    // Геолокация
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         latitude = pos.coords.latitude;
@@ -78,6 +81,7 @@
       { enableHighAccuracy: true, timeout: 5000 }
     );
 
+    // Подключение WebSocket
     function connectWebSocket() {
       ws = new WebSocket(SERVER_BASE_URL.replace(/^http/, 'ws') + "/ws/chat");
       ws.onopen = () => {
@@ -100,6 +104,7 @@
         }
 
         const distInfo = data.distance_km !== null ? ` (~${data.distance_km.toFixed(1)} км от вас)` : '';
+
         const msg = document.createElement("li");
 
         const avatar = document.createElement("img");
@@ -111,21 +116,6 @@
 
         msg.appendChild(avatar);
         msg.appendChild(text);
-
-        if (data.files && Array.isArray(data.files)) {
-          const fileLinks = document.createElement("ul");
-          for (const fileUrl of data.files) {
-            const li = document.createElement("li");
-            const a = document.createElement("a");
-            a.href = fileUrl;
-            a.target = "_blank";
-            a.textContent = fileUrl.split("/").pop();
-            li.appendChild(a);
-            fileLinks.appendChild(li);
-          }
-          msg.appendChild(fileLinks);
-        }
-
         messages.appendChild(msg);
         msg.scrollIntoView({ behavior: "smooth" });
       };
@@ -144,11 +134,13 @@
 
     connectWebSocket();
 
+    // Обработчик выбора файлов
     fileInput.addEventListener("change", (event) => {
       selectedFiles = Array.from(event.target.files);
       renderFileList();
     });
 
+    // Отображение списка файлов
     function renderFileList() {
       if (selectedFiles.length === 0) {
         fileListDiv.innerHTML = "";
@@ -159,15 +151,11 @@
       fileListDiv.innerHTML = `<b>📎 Прикреплённые файлы:</b><ul>${items.join("")}</ul>`;
     }
 
+    // Отправка сообщения и файлов
     async function send() {
       const username = usernameInput.value || "Аноним";
       const message = document.getElementById("msg").value.trim();
       if (!message && selectedFiles.length === 0) return;
-
-      if (ws.readyState !== WebSocket.OPEN) {
-        alert("Нет соединения с сервером.");
-        return;
-      }
 
       const payload = {
         sessionId,
@@ -175,13 +163,23 @@
         message,
         latitude,
         longitude,
-        avatar: avatarURL,
-        files: []
+        avatar: avatarURL
       };
 
+      if (ws.readyState !== WebSocket.OPEN) {
+        alert("Нет соединения с сервером.");
+        return;
+      }
+
+      // Отправляем сообщение по WebSocket
+      ws.send(JSON.stringify(payload));
+
+      // Отправляем файлы, если есть
       if (selectedFiles.length > 0) {
         const formData = new FormData();
-        selectedFiles.forEach(file => formData.append("files", file));
+        selectedFiles.forEach((file) => {
+          formData.append("files", file);
+        });
         formData.append("username", username);
 
         try {
@@ -189,11 +187,7 @@
             method: "POST",
             body: formData
           });
-
-          if (response.ok) {
-            const result = await response.json();
-            payload.files = result.file_urls || [];
-          } else {
+          if (!response.ok) {
             console.error("Ошибка загрузки файлов:", response.statusText);
             alert("Ошибка загрузки файлов: " + response.statusText);
           }
@@ -203,8 +197,7 @@
         }
       }
 
-      ws.send(JSON.stringify(payload));
-
+      // Очистка
       document.getElementById("msg").value = "";
       fileInput.value = "";
       selectedFiles = [];
