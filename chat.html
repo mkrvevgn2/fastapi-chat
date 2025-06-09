@@ -39,7 +39,7 @@
   let latitude = null, longitude = null;
   let selectedFiles = [];
   const sessionId = crypto.randomUUID();
-  const avatarURL = `https://api.dicebear.com/7.x/thumbs/svg?seed=${sessionId}`;
+  const avatarURL = https://api.dicebear.com/7.x/thumbs/svg?seed=${sessionId};
 
   // Получение геолокации
   navigator.geolocation?.getCurrentPosition(
@@ -55,19 +55,19 @@
     const data = JSON.parse(event.data);
 
     if (data.user_count !== undefined) {
-      status.textContent = `👥 Онлайн: ${data.user_count}`;
+      status.textContent = 👥 Онлайн: ${data.user_count};
       return;
     }
 
     const msgEl = document.createElement("div");
     msgEl.className = "message";
-    msgEl.innerHTML = `
+    msgEl.innerHTML = 
       <div class="meta">
         🕒 ${data.timestamp} | 👤 <b>${data.username}</b>
-        ${data.distance_km != null ? ` | 📍${data.distance_km} км` : ""}
+        ${data.distance_km != null ?  | 📍${data.distance_km} км : ""}
       </div>
       <div>${data.message}</div>
-    `;
+    ;
     chat.appendChild(msgEl);
     chat.scrollTop = chat.scrollHeight;
   };
@@ -87,7 +87,7 @@
         img.src = URL.createObjectURL(file);
         div.appendChild(img);
       } else {
-        div.textContent = `📄 ${file.name}`;
+        div.textContent = 📄 ${file.name};
       }
       fileList.appendChild(div);
     }
@@ -128,9 +128,9 @@
           const links = data.saved.map(url => {
             const fullUrl = SERVER_BASE_URL + url;
             const name = decodeURIComponent(url.split("/").pop());
-            return `<a href="${fullUrl}" target="_blank">${name}</a>`;
+            return <a href="${fullUrl}" target="_blank">${name}</a>;
           }).join("<br>");
-          payload.message += `<br>📎 Файлы:<br>${links}`;
+          payload.message += <br>📎 Файлы:<br>${links};
         }
       } catch (err) {
         alert("Ошибка загрузки файлов.");
