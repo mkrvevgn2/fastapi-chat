@@ -69,6 +69,15 @@
       <div>${data.message}</div>
     `;
     chat.appendChild(msgEl);
+    if (data.files && data.files.length > 0) {
+  const filesBlock = document.createElement("div");
+  filesBlock.innerHTML = "📎 Файлы:<br>" + data.files.map(url => {
+    const fullUrl = SERVER_BASE_URL + url;
+    const name = decodeURIComponent(url.split("/").pop());
+    return `<a href="${fullUrl}" target="_blank">${name}</a>`;
+  }).join("<br>");
+  msgEl.appendChild(filesBlock);
+}
     chat.scrollTop = chat.scrollHeight;
   };
 
@@ -124,14 +133,9 @@
         });
         const data = await response.json();
 
-        if (data.saved && data.saved.length > 0) {
-          const links = data.saved.map(url => {
-            const fullUrl = SERVER_BASE_URL + url;
-            const name = decodeURIComponent(url.split("/").pop());
-            return `<a href="${fullUrl}" target="_blank">${name}</a>`;
-          }).join("<br>");
-          payload.message += `<br>📎 Файлы:<br>${links}`;
-        }
+       if (data.saved && data.saved.length > 0) {
+  payload.files = data.saved;  // добавляем массив ссылок в payload
+}
       } catch (err) {
         alert("Ошибка загрузки файлов.");
         return;
