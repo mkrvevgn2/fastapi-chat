@@ -27,7 +27,7 @@
 </div>
 
 <script>
-  const SERVER_BASE_URL = "https://2bff-34-169-106-117.ngrok-free.app"; // ← Укажи адрес сервера!
+  const SERVER_BASE_URL = "https://9603-34-125-93-238.ngrok-free.app"; // ← Укажи адрес сервера!
   const ws = new WebSocket(SERVER_BASE_URL.replace("https", "wss") + "/ws/chat");
 
   const chat = document.getElementById("chat");
@@ -39,7 +39,7 @@
   let latitude = null, longitude = null;
   let selectedFiles = [];
   const sessionId = crypto.randomUUID();
-  const avatarURL = `https://api.dicebear.com/7.x/thumbs/svg?seed=${sessionId}`;
+  const avatarURL = https://api.dicebear.com/7.x/thumbs/svg?seed=${sessionId};
 
   // Получение геолокации
   navigator.geolocation?.getCurrentPosition(
@@ -55,29 +55,20 @@
     const data = JSON.parse(event.data);
 
     if (data.user_count !== undefined) {
-      status.textContent = `👥 Онлайн: ${data.user_count}`;
+      status.textContent = 👥 Онлайн: ${data.user_count};
       return;
     }
 
     const msgEl = document.createElement("div");
     msgEl.className = "message";
-    msgEl.innerHTML = `
+    msgEl.innerHTML = 
       <div class="meta">
         🕒 ${data.timestamp} | 👤 <b>${data.username}</b>
-        ${data.distance_km != null ? ` | 📍${data.distance_km} км` : ""}
+        ${data.distance_km != null ?  | 📍${data.distance_km} км : ""}
       </div>
       <div>${data.message}</div>
-    `;
+    ;
     chat.appendChild(msgEl);
-    if (data.files && data.files.length > 0) {
-  const filesBlock = document.createElement("div");
-  filesBlock.innerHTML = "📎 Файлы:<br>" + data.files.map(url => {
-    const fullUrl = SERVER_BASE_URL + url;
-    const name = decodeURIComponent(url.split("/").pop());
-    return `<a href="${fullUrl}" target="_blank">${name}</a>`;
-  }).join("<br>");
-  msgEl.appendChild(filesBlock);
-}
     chat.scrollTop = chat.scrollHeight;
   };
 
@@ -96,7 +87,7 @@
         img.src = URL.createObjectURL(file);
         div.appendChild(img);
       } else {
-        div.textContent = `📄 ${file.name}`;
+        div.textContent = 📄 ${file.name};
       }
       fileList.appendChild(div);
     }
@@ -133,9 +124,14 @@
         });
         const data = await response.json();
 
-       if (data.saved && data.saved.length > 0) {
-  payload.files = data.saved;  // добавляем массив ссылок в payload
-}
+        if (data.saved && data.saved.length > 0) {
+          const links = data.saved.map(url => {
+            const fullUrl = SERVER_BASE_URL + url;
+            const name = decodeURIComponent(url.split("/").pop());
+            return <a href="${fullUrl}" target="_blank">${name}</a>;
+          }).join("<br>");
+          payload.message += <br>📎 Файлы:<br>${links};
+        }
       } catch (err) {
         alert("Ошибка загрузки файлов.");
         return;
