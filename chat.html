@@ -27,7 +27,7 @@
 </div>
 
 <script>
-  const SERVER_BASE_URL = "https://554d-34-170-112-102.ngrok-free.app"; // ← Укажи адрес сервера!
+  const SERVER_BASE_URL = "https://da09-34-170-112-102.ngrok-free.app"; // ← Укажи адрес сервера!
   const ws = new WebSocket(SERVER_BASE_URL.replace("https", "wss") + "/ws/chat");
 
   const chat = document.getElementById("chat");
@@ -126,7 +126,7 @@
 
         if (data.saved && data.saved.length > 0) {
           const links = data.saved.map(url => {
-            const fullUrl = SERVER_BASE_URL + url;
+            const fullUrl = `${SERVER_BASE_URL}/${url}`;
             const name = decodeURIComponent(url.split("/").pop());
             return `<a href="${fullUrl}" target="_blank">${name}</a>`;
           }).join("<br>");
