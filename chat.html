@@ -126,10 +126,19 @@
 
         if (data.saved && data.saved.length > 0) {
           const links = data.saved.map(url => {
-            const fullUrl = `${SERVER_BASE_URL}/${url}`;
-            const name = decodeURIComponent(url.split("/").pop());
-            return `<a href="${fullUrl}" target="_blank">${name}</a>`;
-          }).join("<br>");
+  const fullUrl = `${SERVER_BASE_URL}/${url}`;
+  const name = decodeURIComponent(url.split("/").pop());
+  const isImage = /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(name);
+
+  if (isImage) {
+    return `<a href="${fullUrl}" target="_blank">
+              <img src="${fullUrl}" alt="${name}" style="max-height: 100px; margin: 5px;">
+            </a>`;
+  } else {
+    return `<a href="${fullUrl}" target="_blank">📄 ${name}</a>`;
+  }
+}).join("<br>");
+
           payload.message += `<br>📎 Файлы:<br>${links}`;
         }
       } catch (err) {
