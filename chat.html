@@ -128,9 +128,7 @@
           const links = data.saved.map(url => {
             const fullUrl = SERVER_BASE_URL + url;
             const name = decodeURIComponent(url.split("/").pop());
-            return  ` <a href="${fullUrl}" target="_blank" style="display: inline-block; margin: 5px;">
-        <img src="${fullUrl}" alt="${name}" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 1px solid #ccc; border-radius: 8px;" />
-      </a>`;
+            return `<a href="${fullUrl}" target="_blank">${name}</a>`;
           }).join("<br>");
           payload.message += `<br>📎 Файлы:<br>${links}`;
         }
