@@ -127,17 +127,17 @@
         const data = await response.json();
 
         if (data.saved && data.saved.length > 0) {
-          const links = data.saved.map(url => {
-  const fullUrl = `${SERVER_BASE_URL}/${url}`;
+       const links = data.saved.map(url => {
+  const relativeUrl = `/${url}`; // относительный путь
   const name = decodeURIComponent(url.split("/").pop());
   const isImage = /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(name);
 
   if (isImage) {
-    return `<a href="${fullUrl}" target="_blank">
-              <img src="${fullUrl}" alt="${name}" style="max-height: 100px; margin: 5px;">
+    return `<a href="${relativeUrl}" target="_blank">
+              <img src="${relativeUrl}" alt="${name}" style="max-height: 100px; margin: 5px;">
             </a>`;
   } else {
-    return `<a href="${fullUrl}" target="_blank">📄 ${name}</a>`;
+    return `<a href="${relativeUrl}" target="_blank">📄 ${name}</a>`;
   }
 }).join("<br>");
 
